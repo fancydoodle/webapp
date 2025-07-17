@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fancydoodle</title>
+  <link rel='stylesheet' href='style.css' />
+  <link rel='icon' href='data:;base64,='>
+  <script src='tailwindcss.min.js'></script>
+</head>
+<body>
+<!-- Modal Overlay -->
+<div id="modalOverlay" class="fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-[9998] overflow-auto hidden">
+  
+  <div class="absolute top-16 bg-white w-[500px] h-auto rounded-lg shadow-lg p-6 text-center">
+    <button id="closeModalBtn" class="absolute top-1 right-2 text-gray-600 hover:text-black text-xl">&times;</button>
+    
+    <h2 class="text-lg font-semibold mb-6"><span class="bg-black text-white p-2">How to use</span><span class="text-sm"></span></h2>
+
+  <div class="bg-slate-100 p-4 mb-4">
+    <p class="mb-8 bg-white">Text Mode </p>
+    <p class="text-gray-700 mb-8"><span class="bold text-black bg-gray-200 p-2 rounded">t</span> - Activate text mode</p>
+    
+    <p class="text-gray-700 mb-8"><span class="bold text-black bg-gray-200 p-2 rounded">Escape</span> - Return to Draw mode</p>
+
+    <p class="text-gray-700 mb-6">&rarr; Text blocks are draggable &amp; editable &larr;</p>
+    
+    <p class="text-gray-700 mb-2">** Right click to delete text **</p>
+    
+    
+  </div>
+
+  <p class="text-gray-700 my-10">
+  
+  <span class="bold text-black bg-gray-200 py-1 px-2 rounded">cmd</span> <span class="bold text-black bg-gray-200 py-1 px-2 rounded mr-2">+</span>  
+  
+  <span class="bold text-black bg-gray-200 py-1 px-2 rounded">cmd</span> <span class="bold text-black bg-gray-200 py-1 px-2 rounded mr-2">-</span>  
+  
+  Resize text or line</p>
+
+
+  <div class="bg-stone-100 p-4 mb-10">
+  <p class="mb-8 bg-white">Draw Mode</p>
+
+      <div class="flex justify-center gap-6 mb-10">
+        <p class="text-gray-700 text-bold"><span class="bold text-black bg-gray-200 p-2 rounded">b</span> Black</p>
+        <p class="text-gray-700 text-bold"><span class="bold text-black bg-gray-200 p-2 rounded">w</span> White</p>
+        <p class="text-gray-700 text-bold"><span class="bold text-black bg-gray-200 p-2 rounded">y</span> Yellow</p>
+        <p class="text-gray-700 text-bold"><span class="bold text-black bg-gray-200 p-2 rounded">r</span> Red</p>
+      </div>
+
+    <p class="text-gray-700 text-bold mb-10">Hold <span class="bold text-black bg-gray-200 p-2 rounded">shift</span> to create <span class="bold text-black bg-gray-200 p-2 rounded">straight lines</span></p>
+    
+    <p class="text-gray-700 text-bold mb-10">Hold <span class="bold text-black bg-gray-200 p-2 rounded">alt</span> to create <span class="bold text-black bg-gray-200 p-2 rounded">dashed lines</span></p>
+    
+    <p class="text-gray-700 text-bold mb-10">Hold <span class="bold text-black bg-gray-200 p-2 rounded">cmd/ctrl</span> to draw <span class="bold text-black bg-gray-200 p-2 rounded">circles</span></p>
+    
+    <p class="text-gray-700 text-bold mb-4"><span class="bold text-black bg-gray-200 p-2 rounded">Right Click</span> to create <span class="bold text-black bg-gray-200 p-2 rounded">Bezier curves</span></p>
+  </div>
+
+    <div class="mb-10">
+      <p class="text-gray-700 mb-4"><span class="bold text-black bg-gray-200 p-2 rounded">cmd</span> + <span class="bold text-black bg-gray-200 p-2 rounded">z</span> Undo</p>
+      <p class="text-gray-700 mb-4"><span class="bold text-black bg-gray-200 p-2 rounded">cmd</span> + <span class="bold text-black bg-gray-200 p-2 rounded">y</span> Redo</p>
+    </div>
+    
+    
+  <div class="flex justify-center">
+    <p class="text-gray-700 text-sm mb-2">All app data is stored <span class="border-b-2 border-black">on this computer only.</span></p>
+  </div>
+    
+  </div>
+  <!--  -->
+</div>
+
+
+
+  
+<!-- <div class="overlay-texture"></div> -->
+      
+<div class="flex justify-between">
+
+  <div>
+      <button id="clearBtn" tabindex="-1" class="cursor-pointer bg-[#f44336] text-white border-none py-2 px-3 select-none">Clear All</button>
+
+      <button id="infoBtn" tabindex="-1" class="cursor-pointer bg-blue-400 text-white border-none py-2 px-3 select-none">
+  Info
+</button>
+
+  </div>
+
+  <div>
+    <button id="blackBtn" tabindex="-1" class="color-btn py-2 px-3 cursor-pointer select-none"></button>
+    <button id="whiteBtn" tabindex="-1" class="color-btn py-2 px-3 cursor-pointer select-none"></button>
+    <button id="yellowBtn" tabindex="-1" class="color-btn py-2 px-3 cursor-pointer select-none"></button>
+    <button id="redBtn" tabindex="-1" class="color-btn py-2 px-3 cursor-pointer select-none"></button>
+    
+    <input type="color" tabindex="-1" id="customColorPicker" title="Pick a custom color" />
+  </div>
+
+
+  <div tabindex="-1" id="sizeDisplay" class="min-w-[180px] border-none py-2 cursor-pointer bg-violet-600 text-white select-none z-[9999] text-center"></div>
+
+<!--  -->
+<!--  -->
+</div>
+
+<!--  -->
+<!--  -->
+<!--  -->
+
+<div class="canvas-container">
+  <div class="overlay-texture"></div>
+  <canvas id="myCanvas"></canvas>
+</div>
+
+
+<!--  -->
+<!--  -->
+<!--  -->
+<script type="module" src="script.js"></script>
+
+</body>
+</html>

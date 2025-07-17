@@ -1,0 +1,76 @@
+@font-face {
+  font-family: 'Spraypaint';
+  src: url('Spraypaint.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: fallback;
+}
+@font-face {
+  font-family: 'SpecialElite';
+  src: url('SpecialElite-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: fallback;
+}
+
+html{
+  overflow: hidden;
+  user-select: none;
+}
+.canvas-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+#myCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.overlay-texture {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('texture.png'); /* your texture file */
+  background-size: contain;
+  pointer-events: none; /* so mouse events go to canvas */
+  mix-blend-mode: darken;
+  opacity: 0; /* control texture intensity */
+}
+
+
+button{
+  border-bottom: 3px solid transparent;
+}
+
+.active-color {
+  border-bottom: 3px solid green;
+}
+
+
+#customColorPicker {
+  padding-top: 8px;
+  border: none;
+  outline: none;
+  background: transparent;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+
+    ::selection {
+      background-color: yellow; /* user select highlight color */
+      color: black;
+    }
+
+    /* Firefox */
+    ::-moz-selection {
+      background-color: yellow;
+      color: black;
+    }
