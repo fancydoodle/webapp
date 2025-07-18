@@ -1,4 +1,3 @@
-// Core setup
 const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
 canvas.addEventListener('contextmenu', e => e.preventDefault());
@@ -6,8 +5,21 @@ canvas.addEventListener('contextmenu', e => e.preventDefault());
 const clearBtn = document.getElementById('clearBtn');
 const sizeDisplay = document.getElementById('sizeDisplay');
 
-// LocalStorage key
-const STORAGE_KEY = 'drawingAppState';
+// change localstorage key and migrate any stored data
+const OLD_STORAGE_KEY = 'drawingAppState';
+const NEW_STORAGE_KEY = 'fancydoodleAppState';
+
+function migrateStorage() {
+  if (localStorage.getItem(OLD_STORAGE_KEY) && !localStorage.getItem(NEW_STORAGE_KEY)) {
+    const oldData = localStorage.getItem(OLD_STORAGE_KEY);
+    localStorage.setItem(NEW_STORAGE_KEY, oldData);
+    localStorage.removeItem(OLD_STORAGE_KEY);
+    // console.log('Storage migrated from old key to new key.');
+  }
+}
+migrateStorage();
+
+let STORAGE_KEY = NEW_STORAGE_KEY;
 
 // State
 let actions = [];
@@ -91,7 +103,8 @@ function commitTextInput() {
       data: {
         ...activeText,
         color: currentStrokeColor,
-        fontSize
+        fontSize,
+        rotation: activeText.rotation || 0
       }
     };
   } else {
@@ -123,7 +136,8 @@ function startTyping(x, y, existingAction = null, cursorPos = null) {
   ? { 
       ...existingAction.data, 
       fontSize: existingAction.data.fontSize || fontSize, 
-      cursorPos: cursorPos !== null ? cursorPos : existingAction.data.text.length, 
+      cursorPos: cursorPos !== null ? cursorPos : existingAction.data.text.length,
+      rotation: existingAction.data.rotation || 0,
       _action: existingAction 
     }
   : { 
@@ -131,7 +145,8 @@ function startTyping(x, y, existingAction = null, cursorPos = null) {
       x, 
       y, 
       fontSize, 
-      color: currentStrokeColor, 
+      color: currentStrokeColor,
+      rotation: 0,
       cursorPos: 0 
     };
 
@@ -242,6 +257,21 @@ document.addEventListener('keydown', e => {
     e.preventDefault();
     redoLastAction();
     return;
+  }
+
+  // Ctrl+[ or Ctrl+]
+  if (isTyping && activeText && e.ctrlKey) {
+    if (e.code === 'BracketLeft') {
+      e.preventDefault();
+      activeText.rotation = (activeText.rotation || 0) - 5;
+      draw();
+      return;
+    } else if (e.code === 'BracketRight') {
+      e.preventDefault();
+      activeText.rotation = (activeText.rotation || 0) + 5;
+      draw();
+      return;
+    }
   }
 
   // Cmd/Ctrl + +/- to adjust font or brush size
@@ -402,6 +432,7 @@ if (isTyping && activeText) {
   return;
 }
 
+
 // 
 });
 
@@ -434,6 +465,20 @@ function adjustSize(type, delta) {
 
 
 
+function isPointInRotatedRect(px, py, x, y, w, h, rotationDeg) {
+  const rad = (rotationDeg || 0) * Math.PI / 180;
+
+  // Translate point to rectangle’s coordinate system
+  const dx = px - x;
+  const dy = py - y;
+
+  // Rotate point in opposite direction
+  const rx = dx * Math.cos(-rad) - dy * Math.sin(-rad);
+  const ry = dx * Math.sin(-rad) + dy * Math.cos(-rad);
+
+  return rx >= 0 && rx <= w && ry >= 0 && ry <= h;
+}
+
 
 
 
@@ -453,7 +498,7 @@ canvas.addEventListener('mousedown', e => {
       const t = action.data;
       const { width, height } = getTextBoundingBox(t);
 
-      if (x >= t.x && x <= t.x + width && y >= t.y && y <= t.y + height) {
+      if (isPointInRotatedRect(x, y, t.x, t.y, width, height, t.rotation || 0)) {
         const deleted = actions.splice(i, 1)[0];
 
         actions.push({
@@ -521,7 +566,7 @@ canvas.addEventListener('mousedown', e => {
       const t = action.data;
       const { width, height } = getTextBoundingBox(t);
 
-      if (x >= t.x && x <= t.x + width && y >= t.y && y <= t.y + height) {
+      if (isPointInRotatedRect(x, y, t.x, t.y, width, height, t.rotation || 0)) {
         // Potential drag start
         isDraggingText = true;
         draggingTextIndex = i;
@@ -717,7 +762,24 @@ canvas.addEventListener('mouseleave', () => {
 
 
 
-// Draw function
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "#ffffff";
@@ -739,29 +801,37 @@ function draw() {
   }
 
   for (let action of actions) {
-    if (action.type === 'text') {
-      const { text, x, y, fontSize, color } = action.data;
+    // skip active text action to avoid ghosting
+    if (isTyping && activeText && action === activeText._action) {
+      continue;
+    }
+
+    const { type, data } = action;
+
+    if (type === 'text') {
+      const { text, x, y, fontSize, color = "#000000", rotation = 0 } = data;
       setTextContextFont(fontSize);
-      ctx.fillStyle = color || "#000000";
-      drawMultilineText(ctx, text, x, y);
-    } else if (action.type === 'stroke') {
-      let { points, brushSize, color, isDashed } = action.data;
+      ctx.fillStyle = color;
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotation * Math.PI / 180);
+      drawMultilineText(ctx, text, 0, 0);
+      ctx.restore();
+
+    } else if (type === 'stroke') {
+      let { points, brushSize, color, isDashed, isStraight } = data;
       points = filterClosePoints(points);
       if (points.length < 2) continue;
 
       ctx.strokeStyle = color;
       ctx.lineWidth = brushSize;
-
-      if (isDashed) {
-        ctx.setLineDash([5, 5]); // Dotted: 5px line, 5px gap
-      } else {
-        ctx.setLineDash([]);     // Solid line
-      }
+      ctx.setLineDash(isDashed ? [5, 5] : []);
 
       ctx.beginPath();
       ctx.moveTo(points[0].x, points[0].y);
 
-      if (action.data.isStraight && points.length === 2) {
+      if (isStraight && points.length === 2) {
         ctx.lineTo(points[1].x, points[1].y);
       } else {
         for (let i = 1; i < points.length - 1; i++) {
@@ -772,12 +842,10 @@ function draw() {
         ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
       }
 
-
-      ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
       ctx.stroke();
-    } 
-    else if (action.type === 'circle') {
-      const { x, y, radius, brushSize, color, isDashed } = action.data;
+
+    } else if (type === 'circle') {
+      const { x, y, radius, brushSize, color, isDashed } = data;
 
       ctx.setLineDash(isDashed ? [6, 4] : []);
       ctx.strokeStyle = color;
@@ -804,40 +872,48 @@ function draw() {
     ctx.setLineDash([]);  // Reset to solid after preview
   }
 
+  // Draw active text separately to avoid ghosting
   if (isTyping && activeText) {
-    const { x, y } = activeText;
+    const { x, y, rotation = 0, fontSize, color, text } = activeText;
     const { width, height } = getTextBoundingBox(activeText);
 
+    // Fill background behind rotated text
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rotation * Math.PI / 180);
+
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(x, y, width, height);
+    ctx.fillRect(0, 0, width, height);
 
-    setTextContextFont(activeText.fontSize);
-    ctx.fillStyle = activeText.color;
-    drawMultilineText(ctx, activeText.text, x, y);
+    setTextContextFont(fontSize);
+    ctx.fillStyle = color;
+    drawMultilineText(ctx, text, 0, 0);
 
+    // Draw blinking cursor at rotated position
     if (cursorVisible) {
-      const { text } = activeText;
       const lines = text.split('\n');
       let charIndex = 0;
-      let cx = x, cy = y;
+      let cx = 0, cy = 0;
 
       for (let i = 0; i < lines.length; i++) {
         if (activeText.cursorPos <= charIndex + lines[i].length) {
           const before = lines[i].slice(0, activeText.cursorPos - charIndex);
-          cx = x + ctx.measureText(before).width;
-          cy = y + i * lineHeight;
+          cx = ctx.measureText(before).width;
+          cy = i * lineHeight;
           break;
         }
         charIndex += lines[i].length + 1;
       }
 
-      ctx.strokeStyle = activeText.color;
+      ctx.strokeStyle = color;
       ctx.lineWidth = cursorLineWeight;
       ctx.beginPath();
       ctx.moveTo(cx, cy);
       ctx.lineTo(cx, cy + lineHeight);
       ctx.stroke();
     }
+
+    ctx.restore();
   }
 }
 
