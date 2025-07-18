@@ -1074,29 +1074,44 @@ setActiveColor(blackBtn, "#000000", 2);
 
 // MODAL
 const infoBtn = document.getElementById('infoBtn');
+const startBtn = document.getElementById('startBtn');
 const modalOverlay = document.getElementById('modalOverlay');
 const closeModalBtn = document.getElementById('closeModalBtn');
 
-infoBtn.addEventListener('click', () => {
+// Check localStorage on page load
+if (localStorage.getItem('infoModalSeen') === 'true') {
+  startBtn.classList.add('hidden');
+}
+
+// Function to open modal
+function openModal() {
   modalOverlay.classList.remove('hidden');
   modalOverlay.classList.add('flex');
-});
+  localStorage.setItem('infoModalSeen', 'true');
+  startBtn.classList.add('hidden');
+}
 
+// Open modal from either button
+infoBtn.addEventListener('click', openModal);
+startBtn.addEventListener('click', openModal);
+
+// Close modal button
 closeModalBtn.addEventListener('click', () => {
   modalOverlay.classList.remove('flex');
   modalOverlay.classList.add('hidden');
   infoBtn.blur();
 });
 
+// Click outside to close
 modalOverlay.addEventListener('click', (e) => {
   if (e.target === modalOverlay) {
     modalOverlay.classList.remove('flex');
-    modalOverlay.classList.add('hidden'); // Close if clicking outside the modal
+    modalOverlay.classList.add('hidden');
   }
   infoBtn.blur();
 });
 
-// Escape key to close modal
+// ESC key to close
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !modalOverlay.classList.contains('hidden')) {
     modalOverlay.classList.add('hidden');

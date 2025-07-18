@@ -167,8 +167,9 @@
 
 
     
-  <div class="flex justify-center">
-    <p class="text-gray-700 text-sm mb-2">All app data is stored <span class="border-b-2 border-black">on this computer only.</span></p>
+  <div class="flex justify-center flex-col">
+    <p class="text-gray-700 text-sm mb-2">All app data is stored <span class="border-b-2 border-black">in your browser.</span></p>
+    <p class="text-red-700 text-sm mb-2"><span class="border-b-2 border-black font-bold">DO NOT USE THIS APP FOR ANY CRITICAL WORK.</span></p>
   </div>
     
   </div>
@@ -185,9 +186,9 @@
   <div>
       <button id="clearBtn" tabindex="-1" class="cursor-pointer bg-[#f44336] text-white border-none py-2 px-3 select-none">Clear All</button>
 
-      <button id="infoBtn" tabindex="-1" class="cursor-pointer bg-blue-400 text-white border-none py-2 px-3 select-none">
-  Info
-</button>
+      <button id="infoBtn" tabindex="-1" class="cursor-pointer bg-blue-400 text-white border-none py-2 px-3 select-none">Info</button>
+      
+      <p id="startBtn" tabindex="-1" class="inline-block py-2 px-1 select-none"><span class="border-b-2 border-red-500 text-gray-800 italic">&larr; Click here to start</span></p>
 
   </div>
 
@@ -222,5 +223,30 @@
 <!--  -->
 <script type="module" src="script.js"></script>
 
+
+<!-- hide 'click here to start' message if modal has been opened -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const startBtn = document.getElementById('startBtn');
+  const infoBtn = document.getElementById('infoBtn');
+
+  // Check if user has already opened the info modal
+  const infoOpened = localStorage.getItem('infoOpened');
+
+  if (infoOpened === 'true') {
+    startBtn.classList.add('hidden');
+  }
+
+  // Detect info button click
+  infoBtn.addEventListener('click', () => {
+    // Set localStorage flag
+    localStorage.setItem('infoOpened', 'true');
+
+    // Hide start button
+    startBtn.classList.add('hidden');
+  });
+});
+
+</script>
 </body>
 </html>
